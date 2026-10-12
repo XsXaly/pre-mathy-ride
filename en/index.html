@@ -226,7 +226,7 @@
         <div class="booking-intro reveal">
           <h2 id="reserver-titre">Book <span class="accent">your ride</span></h2>
           <p>Choose your ride, a day and a start time: we will confirm your ride by email.</p>
-          <p>We ride at weekends and during Belgian school holidays, from 9:00 am to 5:30 pm.</p>
+          <p>We ride at weekends and during Belgian school holidays, with start times from 9:00 am to 5:00 pm.</p>
           <ul class="contact-list">
             <li>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -270,28 +270,19 @@
               <p class="error" id="people-error"></p>
             </div>
 
-            <div class="pick" id="planner" hidden>
+            <div class="pick" id="planner">
+              <input type="hidden" id="date" name="date">
+              <input type="hidden" id="time" name="time">
               <p class="pick-label" id="lbl-day">Day</p>
-              <div class="month-tabs" id="month-tabs" role="group" aria-label="Month"></div>
-              <div class="day-grid" id="day-grid" role="group" aria-labelledby="lbl-day"></div>
+              <div class="day-strip">
+                <button type="button" class="strip-nav prev" id="days-prev" aria-label="Earlier days"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="day-scroll" id="day-grid" role="group" aria-labelledby="lbl-day"></div>
+                <button type="button" class="strip-nav next" id="days-next" aria-label="Later days"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+              </div>
               <p class="pick-label" id="lbl-time">Start time</p>
               <div class="time-grid" id="time-grid" role="group" aria-labelledby="lbl-time"></div>
             </div>
             <p class="planner-status" id="planner-status" aria-live="polite"></p>
-            <div class="pick manual-when" id="manual-when">
-              <div class="field">
-                <label for="date">Day</label>
-                <input id="date" name="date" type="date" aria-describedby="when-error">
-              </div>
-              <div class="field">
-                <label for="time">Start time</label>
-                <select id="time" name="time" aria-describedby="when-error">
-                  <option value="">Choose</option>
-                  <option value="09:00">9:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option><option value="12:00">12:00</option>
-                  <option value="13:00">13:00</option><option value="14:00">14:00</option><option value="15:00">15:00</option><option value="16:00">16:00</option>
-                </select>
-              </div>
-            </div>
             <p class="error" id="when-error"></p>
 
             <div class="fields">

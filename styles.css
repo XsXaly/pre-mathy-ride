@@ -381,7 +381,6 @@ section { position: relative; }
 .pick-label .hint { font-weight: 400; }
 .pick .error { margin: 0.5rem 0 0; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-.manual-when { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
 .planner-status { margin: 0; color: var(--text-soft); }
 
 .tile {
@@ -415,22 +414,33 @@ section { position: relative; }
 .people-picks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
 .num-tile { align-items: center; font-family: var(--display); font-weight: 400; font-size: 1.7rem; min-height: 56px; padding: 0.5rem; }
 
-.month-tabs { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.8rem; }
-.month-tab {
-  min-height: 40px; padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer;
-  border: 1.5px solid rgba(243, 238, 232, 0.16); background: transparent; color: var(--text-soft);
-  font: 600 0.95rem/1 var(--body); text-transform: capitalize; transition: border-color 0.18s, color 0.18s, background-color 0.18s;
-}
-.month-tab:hover { color: var(--text); border-color: rgba(243, 238, 232, 0.4); }
-.month-tab[aria-pressed="true"] { color: var(--sunset); border-color: var(--sunset); background: rgba(255, 106, 43, 0.1); }
 
-.day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 0.5rem; margin-bottom: 1.4rem; }
+.day-strip { position: relative; margin-bottom: 1.4rem; }
+.day-scroll {
+  display: flex; gap: 0.5rem; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  padding: 0.2rem 0.1rem 0.7rem; scrollbar-width: thin; scrollbar-color: rgba(255, 106, 43, 0.55) transparent;
+}
+.day-scroll::-webkit-scrollbar { height: 6px; }
+.day-scroll::-webkit-scrollbar-thumb { background: rgba(255, 106, 43, 0.55); border-radius: 3px; }
+.day-scroll .day-tile { flex: 0 0 80px; scroll-snap-align: start; }
+.strip-nav {
+  position: absolute; top: calc(50% - 0.35rem); translate: 0 -50%; z-index: 2; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  border: 1.5px solid var(--sunset); background: var(--night); color: var(--sunset);
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.8); transition: opacity 0.2s, background-color 0.2s;
+}
+.strip-nav:hover { background: var(--sunset); color: var(--night); }
+.strip-nav svg { width: 1.1rem; height: 1.1rem; }
+.strip-nav.prev { left: -16px; }
+.strip-nav.next { right: -16px; }
+.strip-nav:disabled { opacity: 0; pointer-events: none; }
 .day-tile { align-items: center; text-align: center; gap: 0.1rem; min-height: 86px; padding: 0.55rem 0.3rem; }
 .day-dow { font-size: 0.82rem; font-weight: 600; color: var(--dusk); text-transform: capitalize; }
+.day-month { font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
 .day-num { font-family: var(--display); font-weight: 400; font-size: 2rem; line-height: 0.95; }
 .day-info { font-size: 0.75rem; font-weight: 600; color: var(--text-soft); }
 .day-tile.is-holiday .day-dow::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 4px; border-radius: 50%; background: var(--dusk); vertical-align: middle; }
-.tile[aria-pressed="true"] .day-dow, .tile[aria-pressed="true"] .day-info { color: rgba(13, 15, 18, 0.75); }
+.tile[aria-pressed="true"] .day-dow, .tile[aria-pressed="true"] .day-month, .tile[aria-pressed="true"] .day-info { color: rgba(13, 15, 18, 0.75); }
 
 .time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 0.5rem; }
 .time-tile { padding-right: 2rem; min-height: 64px; }
@@ -452,10 +462,13 @@ section { position: relative; }
   .form { padding: 1.25rem 1rem 1.5rem; }
   .ride-picks { grid-template-columns: 1fr; }
   .ride-tile { min-height: 60px; flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 0.7rem; }
-  .day-grid { grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+  .strip-nav { display: none; }
+  .day-scroll .day-tile { flex-basis: 72px; }
   .day-tile { min-height: 78px; }
-  .time-grid { grid-template-columns: repeat(2, 1fr); }
-  .manual-when { grid-template-columns: 1fr; }
+  .time-grid { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+  .time-tile { padding: 0.55rem 0.6rem; min-height: 58px; }
+  .time-tile .tick { width: 16px; height: 16px; top: 0.45rem; right: 0.45rem; }
+  .time-tile .tile-sub { font-size: 0.78rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

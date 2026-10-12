@@ -10,7 +10,14 @@
     exploration: { minutes: 120, fr: "Exploration", en: "Exploration" },
     adrenaline: { minutes: 60, fr: "Adrénaline", en: "Adrenaline" }
   };
-  const DEFAULTS = { open: "09:00", close: "17:30", step: 60, buffer: 30, minNoticeHours: 12, maxPeople: 5, days: [], busy: {} };
+  const DEFAULTS = { open: "09:00", lastStart: "17:00", step: 60, buffer: 30, minNoticeHours: 12, maxPeople: 5, days: [], busy: {} };
+  // Jours ouverts quand le planning n'est pas joignable : week-ends et congés scolaires FWB (même liste que le Sheet)
+  const OPEN_WEEKDAYS = [6, 0];
+  const HOLIDAYS = [
+    ["2026-10-19", "2026-11-02"], ["2026-11-11", "2026-11-11"], ["2026-12-21", "2027-01-01"], ["2027-02-22", "2027-03-05"],
+    ["2027-03-29", "2027-03-29"], ["2027-04-26", "2027-05-07"], ["2027-05-17", "2027-05-17"], ["2027-07-03", "2027-08-29"]
+  ];
+  const HORIZON_DAYS = 90;
 
   const T = {
     fr: {
@@ -21,20 +28,17 @@
         phone: "Indiquez un numéro de téléphone valide.",
         email: "Indiquez une adresse e-mail valide.",
         whenPlanner: "Choisissez un jour et une heure de départ.",
-        whenManual: "Choisissez un jour à venir et une heure de départ.",
         summary: "Il manque quelques informations : corrigez les champs signalés en rouge.",
         taken: "Ce créneau vient d’être réservé. Choisissez-en un autre, les disponibilités sont à jour.",
         closed: "Ce jour n’est pas ouvert à la réservation. Choisissez-en un autre.",
         busy: "Le planning est très sollicité. Réessayez dans quelques secondes.",
         generic: `L’envoi n’a pas abouti. Réessayez, ou appelez-nous au ${PHONE_DISPLAY}.`
       },
-      loading: "Chargement des disponibilités…",
-      loadFail: "Les disponibilités n’ont pas pu être chargées. Indiquez le jour et l’heure souhaités.",
       sending: "Envoi en cours…",
       noDays: `Aucun jour libre pour le moment. Appelez-nous au ${PHONE_DISPLAY}.`,
       pickRideFirst: "Choisissez d’abord une formule.",
       pickDayFirst: "Choisissez d’abord un jour.",
-      starts: (n) => n > 0 ? `${n} départ${n > 1 ? "s" : ""}` : "Complet",
+      full: "Complet",
       back: (t) => `retour ${t}`,
       done: (r, ride, d, t, p) => `Référence ${r} : ${ride}, le ${d} à ${t}, pour ${p} personne${p > 1 ? "s" : ""}.`,
       mailSubject: "Demande de réservation Pré Mathy Ride",
@@ -53,20 +57,17 @@
         phone: "Please enter a valid phone number.",
         email: "Please enter a valid email address.",
         whenPlanner: "Please choose a day and a start time.",
-        whenManual: "Please choose a future day and a start time.",
         summary: "A few details are missing: please fix the fields marked in red.",
         taken: "This time slot has just been booked. Please pick another one, availability is up to date.",
         closed: "This day is not open for booking. Please pick another one.",
         busy: "The planner is busy right now. Please try again in a few seconds.",
         generic: `Your request could not be sent. Please try again, or call us on ${PHONE_DISPLAY}.`
       },
-      loading: "Loading availability…",
-      loadFail: "Availability could not be loaded. Please enter your preferred day and time.",
       sending: "Sending…",
       noDays: `No free days at the moment. Please call us on ${PHONE_DISPLAY}.`,
       pickRideFirst: "Choose a ride first.",
       pickDayFirst: "Choose a day first.",
-      starts: (n) => n > 0 ? `${n} slot${n > 1 ? "s" : ""}` : "Full",
+      full: "Full",
       back: (t) => `back at ${t}`,
       done: (r, ride, d, t, p) => `Reference ${r}: ${ride}, on ${d} at ${t}, for ${p} ${p > 1 ? "people" : "person"}.`,
       mailSubject: "Pré Mathy Ride booking request",
@@ -157,12 +158,10 @@
   const f = form.elements;
   const $ = (id) => document.getElementById(id);
   const summary = $("form-summary");
-  const planner = $("planner");
-  const manualWhen = $("manual-when");
-  const status = $("planner-status");
-  const monthTabs = $("month-tabs");
   const dayGrid = $("day-grid");
   const timeGrid = $("time-grid");
+  const daysPrev = $("days-prev");
+  const daysNext = $("days-next");
   const submitBtn = $("submit-btn");
 
   const pad = (n) => String(n).padStart(2, "0");
@@ -181,9 +180,20 @@
     return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}T${pad(dt.getUTCHours())}:${pad(dt.getUTCMinutes())}`;
   };
 
-  let avail = null;
-  let mode = API ? "planner" : "manual";
-  let month = "";   // AAAA-MM affiché
+  // Disponibilités calculées sur place (sans planning) : week-ends et congés scolaires, aucun créneau pris
+  function localAvailability() {
+    const now = brusselsNow();
+    const days = [];
+    for (let i = 0; i <= HORIZON_DAYS; i++) {
+      const d = shiftStamp(`${now.slice(0, 10)}T12:00`, i * 1440).slice(0, 10);
+      const [y, m, da] = d.split("-").map(Number);
+      const wd = new Date(Date.UTC(y, m - 1, da)).getUTCDay();
+      if (OPEN_WEEKDAYS.includes(wd) || HOLIDAYS.some(([a, b]) => d >= a && d <= b)) days.push(d);
+    }
+    return { ...DEFAULTS, now, days };
+  }
+
+  let avail = localAvailability();
   let selDate = "";
   let selTime = "";
 
@@ -209,13 +219,13 @@
   bindTiles($("people-picks"), f.people, () => setError("people", ""));
   document.querySelectorAll("[data-ride]").forEach((a) => a.addEventListener("click", () => selectRide(a.dataset.ride)));
 
-  /* Disponibilités */
+  /* Créneaux libres : départs à heure pleine, 30 minutes d'écart avec les autres réservations */
   function freeStarts(date, minutes) {
     const a = avail;
     const earliest = shiftStamp(a.now, a.minNoticeHours * 60);
     const busy = a.busy[date] || [];
     const out = [];
-    for (let s = toMin(a.open); s + minutes <= toMin(a.close); s += a.step) {
+    for (let s = toMin(a.open); s <= toMin(a.lastStart); s += a.step) {
       const e = s + minutes;
       const t = fromMin(s);
       if (`${date}T${t}` < earliest) continue;
@@ -225,29 +235,23 @@
     return out;
   }
 
-  function renderMonths() {
-    const months = [...new Set(avail.days.map((d) => d.slice(0, 7)))];
-    if (!months.includes(month)) {
-      const firstFree = avail.days.find((d) => freeStarts(d, rideMinutes()).length);
-      month = (firstFree || avail.days[0] || "").slice(0, 7);
-    }
-    monthTabs.hidden = months.length < 2;
-    monthTabs.innerHTML = months.map((m) => {
-      const label = dateOf(`${m}-01`).toLocaleDateString(T.locale, { month: "long" });
-      return `<button type="button" class="month-tab" data-month="${m}" aria-pressed="${m === month}">${label}</button>`;
-    }).join("");
-  }
-
   function renderDays() {
-    if (!avail.days.length) { dayGrid.innerHTML = `<p class="time-empty">${T.noDays}</p>`; return; }
+    // Les jours déjà passés pour aujourd'hui (délai minimum) disparaissent ; les jours pleins restent affichés « Complet »
+    const days = avail.days.filter((d) => freeStarts(d, 60).length || (avail.busy[d] || []).length);
+    if (!days.length) { dayGrid.innerHTML = `<p class="time-empty">${T.noDays}</p>`; updateArrows(); return; }
     const minutes = rideMinutes();
-    dayGrid.innerHTML = avail.days.filter((d) => d.startsWith(month)).map((d) => {
+    const keep = dayGrid.scrollLeft;
+    dayGrid.innerHTML = days.map((d) => {
       const n = freeStarts(d, minutes).length;
       const dt = dateOf(d);
       const dow = dt.toLocaleDateString(T.locale, { weekday: "short" }).replace(".", "");
-      return `<button type="button" class="tile day-tile" data-date="${d}" aria-pressed="${d === selDate}" ${n ? "" : "disabled"} aria-label="${longDate(d)}, ${T.starts(n)}">` +
-        `<span class="day-dow" aria-hidden="true">${dow}</span><span class="day-num" aria-hidden="true">${dt.getDate()}</span><span class="day-info" aria-hidden="true">${T.starts(n)}</span></button>`;
+      const mon = dt.toLocaleDateString(T.locale, { month: "short" });
+      return `<button type="button" class="tile day-tile" data-date="${d}" aria-pressed="${d === selDate}" ${n ? "" : "disabled"} aria-label="${longDate(d)}${n ? "" : ", " + T.full}">` +
+        `<span class="day-dow" aria-hidden="true">${dow}</span><span class="day-num" aria-hidden="true">${dt.getDate()}</span>` +
+        `<span class="${n ? "day-month" : "day-info"}" aria-hidden="true">${n ? mon : T.full}</span></button>`;
     }).join("");
+    dayGrid.scrollLeft = keep;
+    updateArrows();
   }
 
   function renderTimes() {
@@ -261,48 +265,36 @@
   }
 
   function refreshPlanner() {
-    if (mode !== "planner" || !avail) return;
     const minutes = rideMinutes();
     if (selDate && !freeStarts(selDate, minutes).length) { selDate = ""; selTime = ""; }
     if (selTime && !freeStarts(selDate, minutes).includes(selTime)) selTime = "";
     f.date.value = selDate;
     f.time.value = selTime;
-    renderMonths();
     renderDays();
     renderTimes();
   }
 
+  function updateArrows() {
+    const max = dayGrid.scrollWidth - dayGrid.clientWidth;
+    daysPrev.disabled = dayGrid.scrollLeft <= 4;
+    daysNext.disabled = dayGrid.scrollLeft >= max - 4;
+  }
+  dayGrid.addEventListener("scroll", updateArrows, { passive: true });
+  window.addEventListener("resize", updateArrows);
+  daysPrev.addEventListener("click", () => dayGrid.scrollBy({ left: -dayGrid.clientWidth * 0.8 }));
+  daysNext.addEventListener("click", () => dayGrid.scrollBy({ left: dayGrid.clientWidth * 0.8 }));
+
   async function loadAvailability() {
-    if (!avail) status.textContent = T.loading;
     const res = await fetch(API, { method: "GET", cache: "no-store" });
     const data = await res.json();
     if (!data.ok) throw new Error("availability");
     avail = { ...DEFAULTS, ...data };
-    status.textContent = "";
-    planner.hidden = false;
     refreshPlanner();
   }
 
-  function useManual() {
-    mode = "manual";
-    planner.hidden = true;
-    manualWhen.hidden = false;
-    f.date.min = brusselsNow().slice(0, 10);
-  }
+  refreshPlanner();
+  if (API) loadAvailability().catch(() => {});
 
-  if (API) {
-    manualWhen.hidden = true;
-    loadAvailability().catch(() => { status.textContent = T.loadFail; useManual(); });
-  } else {
-    useManual();
-  }
-
-  monthTabs.addEventListener("click", (e) => {
-    const b = e.target.closest(".month-tab");
-    if (!b) return;
-    month = b.dataset.month;
-    refreshPlanner();
-  });
   dayGrid.addEventListener("click", (e) => {
     const b = e.target.closest(".day-tile");
     if (!b || b.disabled) return;
@@ -310,7 +302,7 @@
     selTime = "";
     setError("when", "");
     refreshPlanner();
-    dayGrid.querySelector(`[data-date="${selDate}"]`).focus();
+    dayGrid.querySelector(`[data-date="${selDate}"]`).focus({ preventScroll: true });
   });
   timeGrid.addEventListener("click", (e) => {
     const b = e.target.closest(".time-tile");
@@ -334,13 +326,7 @@
     if (!RIDES[f.ride.value]) errs.ride = T.errors.ride;
     const p = Number(f.people.value);
     if (!Number.isInteger(p) || p < 1 || p > 5) errs.people = T.errors.people;
-    if (mode === "planner") {
-      if (!selDate || !selTime) errs.when = T.errors.whenPlanner;
-    } else {
-      const t = f.time.value;
-      const lastStart = toMin(DEFAULTS.close) - rideMinutes();
-      if (!f.date.value || !t || `${f.date.value}T${t}` < brusselsNow() || toMin(t) > lastStart) errs.when = T.errors.whenManual;
-    }
+    if (!selDate || !selTime) errs.when = T.errors.whenPlanner;
     if (f.name.value.trim().length < 2) errs.name = T.errors.name;
     if (f.phone.value.replace(/\D/g, "").length < 8) errs.phone = T.errors.phone;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) errs.email = T.errors.email;
@@ -348,7 +334,7 @@
     return errs;
   }
 
-  ["name", "phone", "email", "date", "time"].forEach((n) => {
+  ["name", "phone", "email"].forEach((n) => {
     const re = () => { if (summary.textContent) validate(); };
     f[n].addEventListener("blur", re);
     f[n].addEventListener("change", re);
@@ -359,7 +345,7 @@
     const target = {
       ride: $("ride-picks").querySelector(".tile"),
       people: $("people-picks").querySelector(".tile"),
-      when: mode === "planner" ? (timeGrid.querySelector(".tile") || dayGrid.querySelector(".tile:not(:disabled)")) : f.date
+      when: timeGrid.querySelector(".tile") || dayGrid.querySelector(".tile:not(:disabled)")
     }[k] || f[k];
     if (target) { target.focus(); target.scrollIntoView({ block: "center", behavior: "smooth" }); }
   }
@@ -368,8 +354,8 @@
     return {
       ride: f.ride.value,
       people: Number(f.people.value),
-      date: mode === "planner" ? selDate : f.date.value,
-      time: mode === "planner" ? selTime : f.time.value,
+      date: selDate,
+      time: selTime,
       name: f.name.value.trim(),
       phone: f.phone.value.trim(),
       email: f.email.value.trim(),
@@ -423,7 +409,7 @@
     }
     summary.textContent = "";
     const d = payload();
-    if (mode !== "planner") { mailFallback(d); return; }
+    if (!API) { mailFallback(d); return; }
 
     setBusy(true);
     try {
