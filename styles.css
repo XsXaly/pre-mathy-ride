@@ -364,3 +364,75 @@ section { position: relative; }
 @media (min-width: 1400px) {
   .gallery-grid { grid-auto-rows: 210px; }
 }
+
+/* Planning de réservation */
+.when { border: 0; padding: 0; margin: 0; min-width: 0; }
+.when legend { padding: 0; margin-bottom: 0.4rem; }
+.manual-when { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.manual-when label { font-weight: 400; color: var(--text-soft); font-size: 0.92rem; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.planner { background: var(--night); border: 1px solid rgba(243, 238, 232, 0.16); border-radius: 12px; padding: 0.9rem; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.6rem; }
+.cal-title { margin: 0; font-weight: 700; font-size: 1.05rem; text-transform: capitalize; }
+.cal-nav {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--night-3); color: var(--text); transition: background-color 0.2s, opacity 0.2s;
+}
+.cal-nav:hover:not(:disabled) { background: #2a2f38; }
+.cal-nav:disabled { opacity: 0.3; cursor: default; }
+.cal-nav svg { width: 1.2rem; height: 1.2rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow { text-align: center; font-size: 0.8rem; color: var(--text-soft); padding-bottom: 0.2rem; }
+.cal-day {
+  position: relative; height: 48px; display: grid; place-items: center; padding: 0;
+  border: 1px solid transparent; border-radius: 9px; background: var(--night-3); color: var(--text);
+  font: 600 0.98rem/1 var(--body); cursor: pointer; transition: background-color 0.15s, border-color 0.15s;
+}
+.cal-day::after { content: ""; position: absolute; bottom: 6px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; }
+.cal-day.is-free::after { background: #5fd38a; }
+.cal-day.is-few::after { background: #ffb547; }
+.cal-day:hover:not(:disabled) { border-color: rgba(243, 238, 232, 0.4); }
+.cal-day[aria-pressed="true"] { background: var(--sunset); color: var(--night); border-color: var(--sunset); }
+.cal-day[aria-pressed="true"]::after { background: var(--night); }
+.cal-day:disabled { background: transparent; color: rgba(243, 238, 232, 0.28); cursor: default; }
+.cal-day.is-full:disabled { text-decoration: line-through; text-decoration-color: rgba(243, 238, 232, 0.25); }
+.cal-day.blank { visibility: hidden; }
+.cal-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; padding: 0; margin: 0.8rem 0 0; font-size: 0.88rem; color: var(--text-soft); }
+.cal-legend li { display: flex; align-items: center; gap: 0.4rem; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.is-free { background: #5fd38a; }
+.dot.is-few { background: #ffb547; }
+.dot.is-full { background: rgba(243, 238, 232, 0.28); }
+.slots-wrap { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.slots-title { margin: 0 0 0.6rem; font-weight: 600; }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 0.4rem; }
+.slot {
+  min-height: 44px; border-radius: 9px; border: 1px solid rgba(243, 238, 232, 0.22); background: var(--night-3);
+  color: var(--text); font: 600 0.95rem/1 var(--body); cursor: pointer; transition: background-color 0.15s, border-color 0.15s;
+}
+.slot:hover:not(:disabled) { border-color: var(--sunset); }
+.slot[aria-pressed="true"] { background: var(--sunset); border-color: var(--sunset); color: var(--night); }
+.slot:disabled { background: transparent; color: rgba(243, 238, 232, 0.3); text-decoration: line-through; cursor: default; border-color: var(--line); }
+.planner-status { margin: 0.5rem 0 0; color: var(--text-soft); font-size: 0.95rem; }
+.planner-status:empty { display: none; }
+
+.btn[aria-busy="true"] { opacity: 0.75; cursor: progress; }
+.btn[aria-busy="true"] svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-done { text-align: center; padding: 1.5rem 0.5rem; }
+.form-done:focus { outline: none; }
+.form-done > svg { width: 3.2rem; height: 3.2rem; color: #5fd38a; margin: 0 auto 1rem; }
+.form-done p { color: var(--text-soft); }
+.form-done #done-text { color: var(--text); font-size: 1.1rem; }
+.form-done .btn { margin-top: 0.5rem; }
+
+@media (max-width: 599px) {
+  .form { padding: 1.25rem 1rem 1.5rem; }
+  .planner { padding: 0.7rem 0.55rem; }
+  .cal-grid { gap: 3px; }
+  .cal-day { height: 44px; font-size: 0.92rem; }
+  .cal-dow { font-size: 0.72rem; }
+  .manual-when { grid-template-columns: 1fr; }
+}

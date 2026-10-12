@@ -222,8 +222,8 @@
       <div class="wrap booking-grid">
         <div class="booking-intro reveal">
           <h2 id="reserver-titre">Réservez <span class="accent">votre balade</span></h2>
-          <p>Remplissez le formulaire&nbsp;: votre demande part directement par WhatsApp ou par SMS, et nous vous recontactons pour confirmer le créneau.</p>
-          <p>Vous préférez parler de vive voix&nbsp;? Appelez-nous.</p>
+          <p>Choisissez votre formule, puis un créneau libre dans le calendrier. Votre demande arrive directement chez l’équipe Pré Mathy Ride, qui vous confirme la balade par e-mail.</p>
+          <p>Les balades ont lieu entre 9&nbsp;h et 17&nbsp;h&nbsp;30. Vous préférez parler de vive voix&nbsp;? Appelez-nous.</p>
           <ul class="contact-list">
             <li>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -240,65 +240,113 @@
           </ul>
         </div>
 
-        <form class="form reveal reveal-delay-1" id="booking-form" novalidate data-lang="fr">
-          <h3>Votre demande</h3>
-          <div class="fields">
-            <div class="field full">
-              <label for="ride">Formule</label>
-              <select id="ride" name="ride" required aria-describedby="ride-error">
-                <option value="">Choisissez une formule</option>
-                <option value="decouverte">Découverte, 1 heure, 35&nbsp;€ par personne</option>
-                <option value="exploration">Exploration, 2 heures, 65&nbsp;€ par personne</option>
-                <option value="adrenaline">Adrénaline, 1 heure, 45&nbsp;€ par personne</option>
-              </select>
-              <p class="error" id="ride-error"></p>
+        <form class="form reveal reveal-delay-1" id="booking-form" novalidate>
+          <div class="form-main" id="form-main">
+            <h3>Votre demande</h3>
+            <div class="fields">
+              <div class="field">
+                <label for="ride">Formule</label>
+                <select id="ride" name="ride" required aria-describedby="ride-error">
+                  <option value="">Choisissez une formule</option>
+                  <option value="decouverte">Découverte, 1 h, 35&nbsp;€/pers.</option>
+                  <option value="exploration">Exploration, 2 h, 65&nbsp;€/pers.</option>
+                  <option value="adrenaline">Adrénaline, 1 h, 45&nbsp;€/pers.</option>
+                </select>
+                <p class="error" id="ride-error"></p>
+              </div>
+              <div class="field">
+                <label for="people">Nombre de personnes <span class="hint">(5 maximum)</span></label>
+                <select id="people" name="people" required aria-describedby="people-error">
+                  <option value="1">1 personne</option>
+                  <option value="2">2 personnes</option>
+                  <option value="3">3 personnes</option>
+                  <option value="4">4 personnes</option>
+                  <option value="5">5 personnes</option>
+                </select>
+                <p class="error" id="people-error"></p>
+              </div>
+
+              <fieldset class="field full when">
+                <legend>Date et heure</legend>
+                <div class="planner" id="planner" hidden>
+                  <div class="cal-head">
+                    <button class="cal-nav" type="button" id="cal-prev" aria-label="Mois précédent">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <p class="cal-title" id="cal-title" aria-live="polite"></p>
+                    <button class="cal-nav" type="button" id="cal-next" aria-label="Mois suivant">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                  </div>
+                  <div class="cal-grid" id="cal-grid" role="grid" aria-labelledby="cal-title"></div>
+                  <ul class="cal-legend">
+                    <li><span class="dot is-free"></span>Créneaux libres</li>
+                    <li><span class="dot is-few"></span>Presque complet</li>
+                    <li><span class="dot is-full"></span>Complet ou fermé</li>
+                  </ul>
+                  <div class="slots-wrap" id="slots-wrap" hidden>
+                    <p class="slots-title" id="slots-title"></p>
+                    <div class="slots" id="slots"></div>
+                  </div>
+                </div>
+                <p class="planner-status" id="planner-status" aria-live="polite"></p>
+                <div class="manual-when" id="manual-when">
+                  <div class="field">
+                    <label for="date">Date souhaitée</label>
+                    <input id="date" name="date" type="date" required aria-describedby="when-error">
+                  </div>
+                  <div class="field">
+                    <label for="time">Heure de départ</label>
+                    <input id="time" name="time" type="time" min="09:00" max="16:30" step="1800" required aria-describedby="when-error">
+                  </div>
+                </div>
+                <p class="error" id="when-error"></p>
+              </fieldset>
+
+              <div class="field">
+                <label for="name">Nom et prénom</label>
+                <input id="name" name="name" type="text" autocomplete="name" required aria-describedby="name-error">
+                <p class="error" id="name-error"></p>
+              </div>
+              <div class="field">
+                <label for="phone">Téléphone</label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required aria-describedby="phone-error">
+                <p class="error" id="phone-error"></p>
+              </div>
+              <div class="field full">
+                <label for="email">E-mail</label>
+                <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-error">
+                <p class="error" id="email-error"></p>
+              </div>
+              <div class="field full">
+                <label for="message">Message <span class="hint">(facultatif)</span></label>
+                <textarea id="message" name="message" placeholder="Âge des participants, expérience en deux-roues, question…"></textarea>
+              </div>
+              <div class="hp" aria-hidden="true">
+                <label for="website">Ne pas remplir</label>
+                <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+              </div>
+              <label class="check full">
+                <input type="checkbox" name="guide" checked disabled>
+                <span>Balade avec un guide (obligatoire pour le moment)</span>
+              </label>
             </div>
-            <div class="field">
-              <label for="people">Nombre de personnes</label>
-              <input id="people" name="people" type="number" inputmode="numeric" min="1" max="20" value="1" required aria-describedby="people-error">
-              <p class="error" id="people-error"></p>
+            <div class="form-summary" role="alert" id="form-summary"></div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit" id="submit-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+                <span>Envoyer ma demande</span>
+              </button>
             </div>
-            <div class="field">
-              <label for="name">Nom et prénom</label>
-              <input id="name" name="name" type="text" autocomplete="name" required aria-describedby="name-error">
-              <p class="error" id="name-error"></p>
-            </div>
-            <div class="field">
-              <label for="date">Date souhaitée</label>
-              <input id="date" name="date" type="date" required aria-describedby="date-error">
-              <p class="error" id="date-error"></p>
-            </div>
-            <div class="field">
-              <label for="time">Heure souhaitée</label>
-              <input id="time" name="time" type="time" step="900" required aria-describedby="time-error">
-              <p class="error" id="time-error"></p>
-            </div>
-            <div class="field full">
-              <label for="email">E-mail <span class="hint">(facultatif)</span></label>
-              <input id="email" name="email" type="email" autocomplete="email" aria-describedby="email-error">
-              <p class="error" id="email-error"></p>
-            </div>
-            <div class="field full">
-              <label for="message">Message <span class="hint">(facultatif)</span></label>
-              <textarea id="message" name="message" placeholder="Âge des participants, expérience en deux-roues, question…"></textarea>
-            </div>
-            <label class="check full">
-              <input type="checkbox" name="guide" checked disabled>
-              <span>Balade avec un guide (obligatoire pour le moment)</span>
-            </label>
+            <p class="form-note">Votre demande est envoyée à l’équipe Pré Mathy Ride. Le créneau est bloqué pour vous, et vous recevez un e-mail dès que la balade est confirmée.</p>
           </div>
-          <div class="form-summary" role="alert" id="form-summary"></div>
-          <div class="form-actions">
-            <button class="btn btn-primary" type="submit" data-channel="whatsapp">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.07-.13-.27-.2-.57-.35zM12.04 21.8h-.01a9.8 9.8 0 0 1-5-1.37l-.36-.21-3.72.98 1-3.63-.24-.37a9.8 9.8 0 1 1 8.33 4.6zm8.35-18.16A11.76 11.76 0 0 0 12.04.2C5.5.2.2 5.5.2 12.04c0 2.09.55 4.12 1.59 5.92L.1 24l6.19-1.62a11.8 11.8 0 0 0 5.75 1.46h.01c6.53 0 11.84-5.31 11.84-11.84 0-3.16-1.23-6.14-3.47-8.37z"/></svg>
-              Envoyer par WhatsApp
-            </button>
-            <button class="btn btn-ghost" type="submit" data-channel="sms">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Envoyer par SMS
-            </button>
+          <div class="form-done" id="form-done" hidden tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg>
+            <h3>Merci, votre demande est bien arrivée&nbsp;!</h3>
+            <p id="done-text"></p>
+            <p>Nous vous confirmons la balade très vite par e-mail. Pensez à vérifier vos courriers indésirables.</p>
+            <button class="btn btn-ghost" type="button" id="new-request">Faire une autre demande</button>
           </div>
-          <p class="form-note">Votre demande n’est enregistrée nulle part&nbsp;: elle s’ouvre dans votre application de messagerie, prête à être envoyée.</p>
         </form>
       </div>
     </section>
