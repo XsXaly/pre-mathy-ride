@@ -14,7 +14,10 @@
   <meta property="og:title" content="Pré Mathy Ride | Balades en moto électrique à Lesve">
   <meta property="og:description" content="Des balades guidées en Sur-Ron électrique sur les chemins privés du domaine du Pré Mathy.">
   <meta property="og:image" content="/img/og.jpg">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
+  <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preload" href="/fonts/bebas-neue.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/source-sans-3.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles.css">
@@ -44,7 +47,7 @@
 
   <header class="header" id="header">
     <div class="wrap header-inner">
-      <a class="brand" href="#top" aria-label="Pré Mathy Ride, retour en haut de la page">Pré Mathy <span>Ride</span></a>
+      <a class="brand" href="#top" aria-label="Pré Mathy Ride, retour en haut de la page"><img class="brand-logo" src="/img/logo-icon.webp" width="40" height="40" alt="">Pré Mathy <span>Ride</span></a>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="Ouvrir le menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
@@ -222,8 +225,8 @@
       <div class="wrap booking-grid">
         <div class="booking-intro reveal">
           <h2 id="reserver-titre">Réservez <span class="accent">votre balade</span></h2>
-          <p>Choisissez votre formule, puis un créneau libre dans le calendrier. Votre demande arrive directement chez l’équipe Pré Mathy Ride, qui vous confirme la balade par e-mail.</p>
-          <p>Les balades ont lieu entre 9&nbsp;h et 17&nbsp;h&nbsp;30. Vous préférez parler de vive voix&nbsp;? Appelez-nous.</p>
+          <p>Choisissez votre formule, un jour et une heure de départ&nbsp;: nous vous confirmons la balade par e-mail.</p>
+          <p>Nous roulons le week-end et pendant les congés scolaires, de 9&nbsp;h à 17&nbsp;h&nbsp;30.</p>
           <ul class="contact-list">
             <li>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -242,67 +245,56 @@
 
         <form class="form reveal reveal-delay-1" id="booking-form" novalidate>
           <div class="form-main" id="form-main">
-            <h3>Votre demande</h3>
+            <input type="hidden" id="ride" name="ride">
+            <input type="hidden" id="people" name="people" value="2">
+
+            <div class="pick">
+              <p class="pick-label" id="lbl-ride">Formule</p>
+              <div class="ride-picks" id="ride-picks" role="group" aria-labelledby="lbl-ride">
+                <button type="button" class="tile ride-tile" data-value="decouverte" aria-pressed="false"><span class="tick" aria-hidden="true"></span><span class="tile-main">Découverte</span><span class="tile-sub">1&nbsp;h, 35&nbsp;€</span></button>
+                <button type="button" class="tile ride-tile" data-value="exploration" aria-pressed="false"><span class="tick" aria-hidden="true"></span><span class="tile-main">Exploration</span><span class="tile-sub">2&nbsp;h, 65&nbsp;€</span></button>
+                <button type="button" class="tile ride-tile" data-value="adrenaline" aria-pressed="false"><span class="tick" aria-hidden="true"></span><span class="tile-main">Adrénaline</span><span class="tile-sub">1&nbsp;h, 45&nbsp;€</span></button>
+              </div>
+              <p class="error" id="ride-error"></p>
+            </div>
+
+            <div class="pick">
+              <p class="pick-label" id="lbl-people">Personnes <span class="hint">(5 maximum, prix par personne)</span></p>
+              <div class="people-picks" id="people-picks" role="group" aria-labelledby="lbl-people">
+                <button type="button" class="tile num-tile" data-value="1" aria-pressed="false">1</button>
+                <button type="button" class="tile num-tile" data-value="2" aria-pressed="true">2</button>
+                <button type="button" class="tile num-tile" data-value="3" aria-pressed="false">3</button>
+                <button type="button" class="tile num-tile" data-value="4" aria-pressed="false">4</button>
+                <button type="button" class="tile num-tile" data-value="5" aria-pressed="false">5</button>
+              </div>
+              <p class="error" id="people-error"></p>
+            </div>
+
+            <div class="pick" id="planner" hidden>
+              <p class="pick-label" id="lbl-day">Jour</p>
+              <div class="month-tabs" id="month-tabs" role="group" aria-label="Mois"></div>
+              <div class="day-grid" id="day-grid" role="group" aria-labelledby="lbl-day"></div>
+              <p class="pick-label" id="lbl-time">Heure de départ</p>
+              <div class="time-grid" id="time-grid" role="group" aria-labelledby="lbl-time"></div>
+            </div>
+            <p class="planner-status" id="planner-status" aria-live="polite"></p>
+            <div class="pick manual-when" id="manual-when">
+              <div class="field">
+                <label for="date">Jour</label>
+                <input id="date" name="date" type="date" aria-describedby="when-error">
+              </div>
+              <div class="field">
+                <label for="time">Heure de départ</label>
+                <select id="time" name="time" aria-describedby="when-error">
+                  <option value="">Choisir</option>
+                  <option value="09:00">9&nbsp;h</option><option value="10:00">10&nbsp;h</option><option value="11:00">11&nbsp;h</option><option value="12:00">12&nbsp;h</option>
+                  <option value="13:00">13&nbsp;h</option><option value="14:00">14&nbsp;h</option><option value="15:00">15&nbsp;h</option><option value="16:00">16&nbsp;h</option>
+                </select>
+              </div>
+            </div>
+            <p class="error" id="when-error"></p>
+
             <div class="fields">
-              <div class="field">
-                <label for="ride">Formule</label>
-                <select id="ride" name="ride" required aria-describedby="ride-error">
-                  <option value="">Choisissez une formule</option>
-                  <option value="decouverte">Découverte, 1 h, 35&nbsp;€/pers.</option>
-                  <option value="exploration">Exploration, 2 h, 65&nbsp;€/pers.</option>
-                  <option value="adrenaline">Adrénaline, 1 h, 45&nbsp;€/pers.</option>
-                </select>
-                <p class="error" id="ride-error"></p>
-              </div>
-              <div class="field">
-                <label for="people">Nombre de personnes <span class="hint">(5 maximum)</span></label>
-                <select id="people" name="people" required aria-describedby="people-error">
-                  <option value="1">1 personne</option>
-                  <option value="2">2 personnes</option>
-                  <option value="3">3 personnes</option>
-                  <option value="4">4 personnes</option>
-                  <option value="5">5 personnes</option>
-                </select>
-                <p class="error" id="people-error"></p>
-              </div>
-
-              <fieldset class="field full when">
-                <legend>Date et heure</legend>
-                <div class="planner" id="planner" hidden>
-                  <div class="cal-head">
-                    <button class="cal-nav" type="button" id="cal-prev" aria-label="Mois précédent">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                    </button>
-                    <p class="cal-title" id="cal-title" aria-live="polite"></p>
-                    <button class="cal-nav" type="button" id="cal-next" aria-label="Mois suivant">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                    </button>
-                  </div>
-                  <div class="cal-grid" id="cal-grid" role="grid" aria-labelledby="cal-title"></div>
-                  <ul class="cal-legend">
-                    <li><span class="dot is-free"></span>Créneaux libres</li>
-                    <li><span class="dot is-few"></span>Presque complet</li>
-                    <li><span class="dot is-full"></span>Complet ou fermé</li>
-                  </ul>
-                  <div class="slots-wrap" id="slots-wrap" hidden>
-                    <p class="slots-title" id="slots-title"></p>
-                    <div class="slots" id="slots"></div>
-                  </div>
-                </div>
-                <p class="planner-status" id="planner-status" aria-live="polite"></p>
-                <div class="manual-when" id="manual-when">
-                  <div class="field">
-                    <label for="date">Date souhaitée</label>
-                    <input id="date" name="date" type="date" required aria-describedby="when-error">
-                  </div>
-                  <div class="field">
-                    <label for="time">Heure de départ</label>
-                    <input id="time" name="time" type="time" min="09:00" max="16:30" step="1800" required aria-describedby="when-error">
-                  </div>
-                </div>
-                <p class="error" id="when-error"></p>
-              </fieldset>
-
               <div class="field">
                 <label for="name">Nom et prénom</label>
                 <input id="name" name="name" type="text" autocomplete="name" required aria-describedby="name-error">
@@ -320,16 +312,12 @@
               </div>
               <div class="field full">
                 <label for="message">Message <span class="hint">(facultatif)</span></label>
-                <textarea id="message" name="message" placeholder="Âge des participants, expérience en deux-roues, question…"></textarea>
+                <textarea id="message" name="message" rows="3"></textarea>
               </div>
               <div class="hp" aria-hidden="true">
                 <label for="website">Ne pas remplir</label>
                 <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
               </div>
-              <label class="check full">
-                <input type="checkbox" name="guide" checked disabled>
-                <span>Balade avec un guide (obligatoire pour le moment)</span>
-              </label>
             </div>
             <div class="form-summary" role="alert" id="form-summary"></div>
             <div class="form-actions">
@@ -338,14 +326,13 @@
                 <span>Envoyer ma demande</span>
               </button>
             </div>
-            <p class="form-note">Votre demande est envoyée à l’équipe Pré Mathy Ride. Le créneau est bloqué pour vous, et vous recevez un e-mail dès que la balade est confirmée.</p>
           </div>
           <div class="form-done" id="form-done" hidden tabindex="-1">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg>
-            <h3>Merci, votre demande est bien arrivée&nbsp;!</h3>
+            <h3>Demande envoyée&nbsp;!</h3>
             <p id="done-text"></p>
-            <p>Nous vous confirmons la balade très vite par e-mail. Pensez à vérifier vos courriers indésirables.</p>
-            <button class="btn btn-ghost" type="button" id="new-request">Faire une autre demande</button>
+            <p>Nous vous confirmons la balade par e-mail très vite.</p>
+            <button class="btn btn-ghost" type="button" id="new-request">Nouvelle demande</button>
           </div>
         </form>
       </div>
@@ -356,7 +343,7 @@
     <div class="wrap">
       <div class="footer-inner">
         <div>
-          <a class="brand" href="#top">Pré Mathy <span>Ride</span></a>
+          <a class="footer-logo" href="#top"><img src="/img/logo.webp" width="440" height="460" alt="Logo Pré Mathy Ride" loading="lazy"></a>
           <p>Balades en moto électrique Sur-Ron au domaine du Pré Mathy.</p>
         </div>
         <div>

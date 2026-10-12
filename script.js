@@ -6,42 +6,41 @@
 
   const lang = document.documentElement.lang === "en" ? "en" : "fr";
   const RIDES = {
-    decouverte: { minutes: 60, fr: "Découverte", en: "Discovery", price: 35 },
-    exploration: { minutes: 120, fr: "Exploration", en: "Exploration", price: 65 },
-    adrenaline: { minutes: 60, fr: "Adrénaline", en: "Adrenaline", price: 45 }
+    decouverte: { minutes: 60, fr: "Découverte", en: "Discovery" },
+    exploration: { minutes: 120, fr: "Exploration", en: "Exploration" },
+    adrenaline: { minutes: 60, fr: "Adrénaline", en: "Adrenaline" }
   };
-  const DEFAULTS = { open: "09:00", close: "17:30", step: 30, minNoticeHours: 12, horizonDays: 90, maxPeople: 5 };
+  const DEFAULTS = { open: "09:00", close: "17:30", step: 60, buffer: 30, minNoticeHours: 12, maxPeople: 5, days: [], busy: {} };
 
   const T = {
     fr: {
       errors: {
         ride: "Choisissez une formule.",
-        people: "Le nombre de personnes doit être compris entre 1 et 5.",
+        people: "Choisissez le nombre de personnes (5 maximum).",
         name: "Indiquez votre nom.",
         phone: "Indiquez un numéro de téléphone valide.",
         email: "Indiquez une adresse e-mail valide.",
-        whenPlanner: "Choisissez un jour puis un créneau libre dans le calendrier.",
-        whenManual: "Choisissez une date à venir et une heure de départ entre 9 h et 16 h 30.",
+        whenPlanner: "Choisissez un jour et une heure de départ.",
+        whenManual: "Choisissez un jour à venir et une heure de départ.",
         summary: "Il manque quelques informations : corrigez les champs signalés en rouge.",
-        taken: "Ce créneau vient d’être réservé par quelqu’un d’autre. Choisissez-en un autre, le calendrier est à jour.",
-        closed: "Ce jour est fermé. Choisissez une autre date.",
+        taken: "Ce créneau vient d’être réservé. Choisissez-en un autre, les disponibilités sont à jour.",
+        closed: "Ce jour n’est pas ouvert à la réservation. Choisissez-en un autre.",
         busy: "Le planning est très sollicité. Réessayez dans quelques secondes.",
         generic: `L’envoi n’a pas abouti. Réessayez, ou appelez-nous au ${PHONE_DISPLAY}.`
       },
       loading: "Chargement des disponibilités…",
-      loadFail: "Le calendrier n’a pas pu être chargé. Indiquez la date et l’heure souhaitées ci-dessous.",
+      loadFail: "Les disponibilités n’ont pas pu être chargées. Indiquez le jour et l’heure souhaités.",
       sending: "Envoi en cours…",
-      pickRide: "Choisissez d’abord une formule pour voir les horaires disponibles.",
-      slotsTitle: (d, m) => `Départs possibles le ${d} (balade de ${m / 60} h)`,
-      noSlots: "Plus aucun créneau libre ce jour-là.",
-      dayLabel: (d, n) => n > 0 ? `${d}, ${n} créneau${n > 1 ? "x" : ""} libre${n > 1 ? "s" : ""}` : `${d}, complet ou fermé`,
+      noDays: `Aucun jour libre pour le moment. Appelez-nous au ${PHONE_DISPLAY}.`,
+      pickRideFirst: "Choisissez d’abord une formule.",
+      pickDayFirst: "Choisissez d’abord un jour.",
+      starts: (n) => n > 0 ? `${n} départ${n > 1 ? "s" : ""}` : "Complet",
+      back: (t) => `retour ${t}`,
       done: (r, ride, d, t, p) => `Référence ${r} : ${ride}, le ${d} à ${t}, pour ${p} personne${p > 1 ? "s" : ""}.`,
-      fallbackNote: "Votre demande s’ouvre dans votre messagerie, prête à être envoyée à l’équipe Pré Mathy Ride.",
       mailSubject: "Demande de réservation Pré Mathy Ride",
       intro: "Bonjour, je souhaite réserver une balade Pré Mathy Ride.",
       labels: { ride: "Formule", people: "Personnes", date: "Date", time: "Heure", name: "Nom", phone: "Téléphone", email: "E-mail" },
-      time: (t) => t.replace(/^0/, "").replace(":", " h "),
-      dow: ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."],
+      time: (t) => { const [h, m] = t.split(":"); return `${Number(h)} h${m === "00" ? "" : " " + m}`; },
       menuOpen: "Ouvrir le menu", menuClose: "Fermer le menu",
       count: (i, n) => `Photo ${i} sur ${n}`,
       locale: "fr-BE"
@@ -49,32 +48,31 @@
     en: {
       errors: {
         ride: "Please choose a ride.",
-        people: "The group size must be between 1 and 5.",
+        people: "Please choose the number of people (5 max).",
         name: "Please enter your name.",
         phone: "Please enter a valid phone number.",
         email: "Please enter a valid email address.",
-        whenPlanner: "Please pick a day, then a free time slot in the calendar.",
-        whenManual: "Please choose a future date and a start time between 9:00 am and 4:30 pm.",
+        whenPlanner: "Please choose a day and a start time.",
+        whenManual: "Please choose a future day and a start time.",
         summary: "A few details are missing: please fix the fields marked in red.",
-        taken: "Someone has just booked this time slot. Please pick another one, the calendar is up to date.",
-        closed: "We are closed on this day. Please choose another date.",
+        taken: "This time slot has just been booked. Please pick another one, availability is up to date.",
+        closed: "This day is not open for booking. Please pick another one.",
         busy: "The planner is busy right now. Please try again in a few seconds.",
         generic: `Your request could not be sent. Please try again, or call us on ${PHONE_DISPLAY}.`
       },
       loading: "Loading availability…",
-      loadFail: "The calendar could not be loaded. Please enter your preferred date and time below.",
+      loadFail: "Availability could not be loaded. Please enter your preferred day and time.",
       sending: "Sending…",
-      pickRide: "Choose a ride first to see the available times.",
-      slotsTitle: (d, m) => `Available start times on ${d} (${m / 60} h ride)`,
-      noSlots: "There are no free time slots left on this day.",
-      dayLabel: (d, n) => n > 0 ? `${d}, ${n} free slot${n > 1 ? "s" : ""}` : `${d}, full or closed`,
+      noDays: `No free days at the moment. Please call us on ${PHONE_DISPLAY}.`,
+      pickRideFirst: "Choose a ride first.",
+      pickDayFirst: "Choose a day first.",
+      starts: (n) => n > 0 ? `${n} slot${n > 1 ? "s" : ""}` : "Full",
+      back: (t) => `back at ${t}`,
       done: (r, ride, d, t, p) => `Reference ${r}: ${ride}, on ${d} at ${t}, for ${p} ${p > 1 ? "people" : "person"}.`,
-      fallbackNote: "Your request opens in your email app, ready to send to the Pré Mathy Ride team.",
       mailSubject: "Pré Mathy Ride booking request",
       intro: "Hello, I would like to book a Pré Mathy Ride tour.",
       labels: { ride: "Ride", people: "People", date: "Date", time: "Time", name: "Name", phone: "Phone", email: "Email" },
       time: (t) => t,
-      dow: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       menuOpen: "Open menu", menuClose: "Close menu",
       count: (i, n) => `Photo ${i} of ${n}`,
       locale: "en-GB"
@@ -153,7 +151,7 @@
   });
 
   /* ------------------------------------------------------------------ */
-  /* Réservation et planning                                             */
+  /* Réservation                                                         */
   /* ------------------------------------------------------------------ */
   const form = document.getElementById("booking-form");
   const f = form.elements;
@@ -162,22 +160,16 @@
   const planner = $("planner");
   const manualWhen = $("manual-when");
   const status = $("planner-status");
-  const calGrid = $("cal-grid");
-  const calTitle = $("cal-title");
-  const slotsWrap = $("slots-wrap");
-  const slotsTitle = $("slots-title");
-  const slotsBox = $("slots");
+  const monthTabs = $("month-tabs");
+  const dayGrid = $("day-grid");
+  const timeGrid = $("time-grid");
   const submitBtn = $("submit-btn");
 
   const pad = (n) => String(n).padStart(2, "0");
-  const ymd = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
   const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
   const fromMin = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
-  const longDate = (s, withYear) => {
-    const [y, m, d] = s.split("-").map(Number);
-    return new Date(y, m - 1, d, 12).toLocaleDateString(T.locale, { weekday: "long", day: "numeric", month: "long", ...(withYear ? { year: "numeric" } : {}) });
-  };
-  // Heure « locale de Bruxelles » sous forme de texte comparable : AAAA-MM-JJTHH:MM
+  const dateOf = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d, 12); };
+  const longDate = (s, withYear) => dateOf(s).toLocaleDateString(T.locale, { weekday: "long", day: "numeric", month: "long", ...(withYear ? { year: "numeric" } : {}) });
   const brusselsNow = () => {
     const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Brussels", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map((x) => [x.type, x.value]));
     return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
@@ -186,109 +178,108 @@
     const [d, t] = stamp.split("T");
     const [y, mo, da] = d.split("-").map(Number);
     const dt = new Date(Date.UTC(y, mo - 1, da) + (toMin(t) + minutes) * 60000);
-    return `${ymd(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate())}T${pad(dt.getUTCHours())}:${pad(dt.getUTCMinutes())}`;
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}T${pad(dt.getUTCHours())}:${pad(dt.getUTCMinutes())}`;
   };
 
-  let avail = null;          // réponse du planning
+  let avail = null;
   let mode = API ? "planner" : "manual";
-  let view = null;           // { y, m } mois affiché
+  let month = "";   // AAAA-MM affiché
   let selDate = "";
   let selTime = "";
 
   const rideMinutes = () => (RIDES[f.ride.value] || { minutes: 60 }).minutes;
 
-  function slotsFor(date, minutes) {
+  /* Cases Formule et Personnes */
+  function bindTiles(container, input, onChange) {
+    container.addEventListener("click", (e) => {
+      const b = e.target.closest(".tile");
+      if (!b) return;
+      input.value = b.dataset.value;
+      container.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t === b)));
+      onChange();
+    });
+  }
+  const selectRide = (value) => {
+    f.ride.value = value;
+    $("ride-picks").querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.value === value)));
+    setError("ride", "");
+    refreshPlanner();
+  };
+  bindTiles($("ride-picks"), f.ride, () => { setError("ride", ""); refreshPlanner(); });
+  bindTiles($("people-picks"), f.people, () => setError("people", ""));
+  document.querySelectorAll("[data-ride]").forEach((a) => a.addEventListener("click", () => selectRide(a.dataset.ride)));
+
+  /* Disponibilités */
+  function freeStarts(date, minutes) {
     const a = avail;
     const earliest = shiftStamp(a.now, a.minNoticeHours * 60);
-    const closed = a.closed.includes(date);
     const busy = a.busy[date] || [];
     const out = [];
     for (let s = toMin(a.open); s + minutes <= toMin(a.close); s += a.step) {
       const e = s + minutes;
       const t = fromMin(s);
-      const free = !closed && `${date}T${t}` >= earliest && !busy.some(([bs, be]) => bs < e && s < be);
-      out.push({ t, free });
+      if (`${date}T${t}` < earliest) continue;
+      if (busy.some(([bs, be]) => bs < e + a.buffer && s < be + a.buffer)) continue;
+      out.push(t);
     }
     return out;
   }
 
-  function renderCalendar() {
-    const a = avail;
-    const today = a.now.slice(0, 10);
-    const last = shiftStamp(`${today}T12:00`, a.horizonDays * 1440).slice(0, 10);
-    const { y, m } = view;
-    const first = new Date(y, m - 1, 1, 12);
-    calTitle.textContent = first.toLocaleDateString(T.locale, { month: "long", year: "numeric" });
-    const [ty, tm] = today.split("-").map(Number);
-    const [ly, lm] = last.split("-").map(Number);
-    $("cal-prev").disabled = y * 12 + m <= ty * 12 + tm;
-    $("cal-next").disabled = y * 12 + m >= ly * 12 + lm;
-
-    const minutes = rideMinutes();
-    const days = new Date(y, m, 0).getDate();
-    const offset = (first.getDay() + 6) % 7;
-    let html = T.dow.map((d) => `<span class="cal-dow" aria-hidden="true">${d}</span>`).join("");
-    for (let i = 0; i < offset; i++) html += '<span class="cal-day blank" aria-hidden="true"></span>';
-    for (let d = 1; d <= days; d++) {
-      const date = ymd(y, m, d);
-      const inRange = date >= today && date <= last;
-      let cls = "is-out";
-      let free = 0;
-      if (inRange) {
-        const slots = slotsFor(date, minutes);
-        free = slots.filter((s) => s.free).length;
-        cls = free === 0 ? "is-full" : free <= 2 ? "is-few" : "is-free";
-      }
-      const disabled = !inRange || free === 0;
-      html += `<button type="button" class="cal-day ${cls}" data-date="${date}" aria-pressed="${date === selDate}" ${disabled ? "disabled" : ""} aria-label="${T.dayLabel(longDate(date), free)}">${d}</button>`;
+  function renderMonths() {
+    const months = [...new Set(avail.days.map((d) => d.slice(0, 7)))];
+    if (!months.includes(month)) {
+      const firstFree = avail.days.find((d) => freeStarts(d, rideMinutes()).length);
+      month = (firstFree || avail.days[0] || "").slice(0, 7);
     }
-    calGrid.innerHTML = html;
+    monthTabs.hidden = months.length < 2;
+    monthTabs.innerHTML = months.map((m) => {
+      const label = dateOf(`${m}-01`).toLocaleDateString(T.locale, { month: "long" });
+      return `<button type="button" class="month-tab" data-month="${m}" aria-pressed="${m === month}">${label}</button>`;
+    }).join("");
   }
 
-  function renderSlots() {
-    if (!selDate) { slotsWrap.hidden = true; return; }
-    slotsWrap.hidden = false;
-    if (!f.ride.value) {
-      slotsTitle.textContent = T.pickRide;
-      slotsBox.innerHTML = "";
-      return;
-    }
+  function renderDays() {
+    if (!avail.days.length) { dayGrid.innerHTML = `<p class="time-empty">${T.noDays}</p>`; return; }
     const minutes = rideMinutes();
-    const slots = slotsFor(selDate, minutes);
-    slotsTitle.textContent = T.slotsTitle(longDate(selDate), minutes);
-    if (!slots.some((s) => s.free)) {
-      slotsBox.innerHTML = `<p class="planner-status">${T.noSlots}</p>`;
-      return;
-    }
-    slotsBox.innerHTML = slots.map((s) => `<button type="button" class="slot" data-time="${s.t}" aria-pressed="${s.t === selTime}" ${s.free ? "" : "disabled"}>${T.time(s.t)}</button>`).join("");
+    dayGrid.innerHTML = avail.days.filter((d) => d.startsWith(month)).map((d) => {
+      const n = freeStarts(d, minutes).length;
+      const dt = dateOf(d);
+      const dow = dt.toLocaleDateString(T.locale, { weekday: "short" }).replace(".", "");
+      return `<button type="button" class="tile day-tile" data-date="${d}" aria-pressed="${d === selDate}" ${n ? "" : "disabled"} aria-label="${longDate(d)}, ${T.starts(n)}">` +
+        `<span class="day-dow" aria-hidden="true">${dow}</span><span class="day-num" aria-hidden="true">${dt.getDate()}</span><span class="day-info" aria-hidden="true">${T.starts(n)}</span></button>`;
+    }).join("");
   }
 
-  function syncSelection() {
-    // Si le créneau choisi n'est plus libre (autre formule, autre réservation), on l'efface.
-    if (selDate && selTime && !slotsFor(selDate, rideMinutes()).some((s) => s.t === selTime && s.free)) selTime = "";
-    if (selDate && !slotsFor(selDate, rideMinutes()).some((s) => s.free)) { selDate = ""; selTime = ""; }
-    f.date.value = selDate;
-    f.time.value = selTime;
+  function renderTimes() {
+    if (!f.ride.value) { timeGrid.innerHTML = `<p class="time-empty">${T.pickRideFirst}</p>`; return; }
+    if (!selDate) { timeGrid.innerHTML = `<p class="time-empty">${T.pickDayFirst}</p>`; return; }
+    const minutes = rideMinutes();
+    timeGrid.innerHTML = freeStarts(selDate, minutes).map((t) =>
+      `<button type="button" class="tile time-tile" data-time="${t}" aria-pressed="${t === selTime}"><span class="tick" aria-hidden="true"></span>` +
+      `<span class="tile-main">${T.time(t)}</span><span class="tile-sub">${T.back(T.time(fromMin(toMin(t) + minutes)))}</span></button>`
+    ).join("");
   }
 
   function refreshPlanner() {
     if (mode !== "planner" || !avail) return;
-    syncSelection();
-    renderCalendar();
-    renderSlots();
+    const minutes = rideMinutes();
+    if (selDate && !freeStarts(selDate, minutes).length) { selDate = ""; selTime = ""; }
+    if (selTime && !freeStarts(selDate, minutes).includes(selTime)) selTime = "";
+    f.date.value = selDate;
+    f.time.value = selTime;
+    renderMonths();
+    renderDays();
+    renderTimes();
   }
 
   async function loadAvailability() {
-    status.textContent = T.loading;
+    if (!avail) status.textContent = T.loading;
     const res = await fetch(API, { method: "GET", cache: "no-store" });
     const data = await res.json();
     if (!data.ok) throw new Error("availability");
     avail = { ...DEFAULTS, ...data };
-    if (!view) {
-      const [y, m] = avail.now.split("-").map(Number);
-      view = { y, m };
-    }
     status.textContent = "";
+    planner.hidden = false;
     refreshPlanner();
   }
 
@@ -296,53 +287,46 @@
     mode = "manual";
     planner.hidden = true;
     manualWhen.hidden = false;
-    const now = brusselsNow();
-    f.date.min = now.slice(0, 10);
+    f.date.min = brusselsNow().slice(0, 10);
   }
 
   if (API) {
     manualWhen.hidden = true;
-    planner.hidden = false;
     loadAvailability().catch(() => { status.textContent = T.loadFail; useManual(); });
   } else {
     useManual();
-    form.querySelector(".form-note").textContent = T.fallbackNote;
   }
 
-  calGrid.addEventListener("click", (e) => {
-    const b = e.target.closest(".cal-day");
+  monthTabs.addEventListener("click", (e) => {
+    const b = e.target.closest(".month-tab");
+    if (!b) return;
+    month = b.dataset.month;
+    refreshPlanner();
+  });
+  dayGrid.addEventListener("click", (e) => {
+    const b = e.target.closest(".day-tile");
     if (!b || b.disabled) return;
     selDate = b.dataset.date;
     selTime = "";
     setError("when", "");
     refreshPlanner();
-    const first = slotsBox.querySelector(".slot:not(:disabled)");
-    if (first && window.matchMedia("(max-width: 899px)").matches) slotsWrap.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    dayGrid.querySelector(`[data-date="${selDate}"]`).focus();
   });
-  slotsBox.addEventListener("click", (e) => {
-    const b = e.target.closest(".slot");
-    if (!b || b.disabled) return;
+  timeGrid.addEventListener("click", (e) => {
+    const b = e.target.closest(".time-tile");
+    if (!b) return;
     selTime = b.dataset.time;
     setError("when", "");
     refreshPlanner();
-    slotsBox.querySelector(`[data-time="${selTime}"]`).focus();
+    timeGrid.querySelector(`[data-time="${selTime}"]`).focus();
   });
-  $("cal-prev").addEventListener("click", () => { view.m === 1 ? (view = { y: view.y - 1, m: 12 }) : view.m--; renderCalendar(); });
-  $("cal-next").addEventListener("click", () => { view.m === 12 ? (view = { y: view.y + 1, m: 1 }) : view.m++; renderCalendar(); });
-  f.ride.addEventListener("change", () => { setError("ride", ""); refreshPlanner(); });
-
-  document.querySelectorAll("[data-ride]").forEach((a) => a.addEventListener("click", () => {
-    f.ride.value = a.dataset.ride;
-    setError("ride", "");
-    refreshPlanner();
-  }));
 
   /* Validation */
   function setError(name, msg) {
     const out = $(`${name}-error`);
     if (out) out.textContent = msg;
-    const targets = name === "when" ? (mode === "planner" ? [] : [f.date, f.time]) : [f[name]];
-    targets.forEach((el) => el.setAttribute("aria-invalid", msg ? "true" : "false"));
+    const el = { name: f.name, phone: f.phone, email: f.email }[name];
+    if (el) el.setAttribute("aria-invalid", msg ? "true" : "false");
   }
 
   function validate() {
@@ -353,10 +337,9 @@
     if (mode === "planner") {
       if (!selDate || !selTime) errs.when = T.errors.whenPlanner;
     } else {
-      const now = brusselsNow();
       const t = f.time.value;
       const lastStart = toMin(DEFAULTS.close) - rideMinutes();
-      if (!f.date.value || !t || `${f.date.value}T${t}` < now || toMin(t) < toMin(DEFAULTS.open) || toMin(t) > lastStart) errs.when = T.errors.whenManual;
+      if (!f.date.value || !t || `${f.date.value}T${t}` < brusselsNow() || toMin(t) > lastStart) errs.when = T.errors.whenManual;
     }
     if (f.name.value.trim().length < 2) errs.name = T.errors.name;
     if (f.phone.value.replace(/\D/g, "").length < 8) errs.phone = T.errors.phone;
@@ -365,7 +348,7 @@
     return errs;
   }
 
-  ["ride", "people", "name", "phone", "email", "date", "time"].forEach((n) => {
+  ["name", "phone", "email", "date", "time"].forEach((n) => {
     const re = () => { if (summary.textContent) validate(); };
     f[n].addEventListener("blur", re);
     f[n].addEventListener("change", re);
@@ -373,8 +356,12 @@
 
   function focusFirstError(keys) {
     const k = keys[0];
-    if (k === "when") (mode === "planner" ? (calGrid.querySelector(".cal-day:not(:disabled)") || calGrid) : f.date).focus();
-    else f[k].focus();
+    const target = {
+      ride: $("ride-picks").querySelector(".tile"),
+      people: $("people-picks").querySelector(".tile"),
+      when: mode === "planner" ? (timeGrid.querySelector(".tile") || dayGrid.querySelector(".tile:not(:disabled)")) : f.date
+    }[k] || f[k];
+    if (target) { target.focus(); target.scrollIntoView({ block: "center", behavior: "smooth" }); }
   }
 
   function payload() {
@@ -392,16 +379,15 @@
     };
   }
 
+  const btnLabel = submitBtn.querySelector("span").textContent;
   function setBusy(busy) {
     submitBtn.disabled = busy;
     submitBtn.setAttribute("aria-busy", String(busy));
-    submitBtn.querySelector("span").textContent = busy ? T.sending : submitBtn.dataset.label;
+    submitBtn.querySelector("span").textContent = busy ? T.sending : btnLabel;
   }
-  submitBtn.dataset.label = submitBtn.querySelector("span").textContent;
 
   function showDone(ref, d) {
-    const ride = RIDES[d.ride][lang];
-    $("done-text").textContent = T.done(ref, ride, longDate(d.date, true), T.time(d.time), d.people);
+    $("done-text").textContent = T.done(ref, RIDES[d.ride][lang], longDate(d.date, true), T.time(d.time), d.people);
     $("form-main").hidden = true;
     const done = $("form-done");
     done.hidden = false;
@@ -448,7 +434,7 @@
         loadAvailability().catch(() => {});
       } else {
         summary.textContent = T.errors[out.error] || T.errors.generic;
-        if (out.error === "taken" || out.error === "closed" || out.error === "date" || out.error === "time") {
+        if (["taken", "closed", "date", "time"].includes(out.error)) {
           selTime = "";
           await loadAvailability().catch(() => {});
           setError("when", T.errors.whenPlanner);
@@ -463,11 +449,15 @@
 
   $("new-request").addEventListener("click", () => {
     form.reset();
+    f.ride.value = "";
+    f.people.value = "2";
+    $("ride-picks").querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", "false"));
+    $("people-picks").querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.value === "2")));
     selDate = "";
     selTime = "";
     $("form-done").hidden = true;
     $("form-main").hidden = false;
     refreshPlanner();
-    f.ride.focus();
+    $("ride-picks").querySelector(".tile").focus();
   });
 })();
