@@ -30,7 +30,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; overflow-x: hidden; overscroll-behavior-x: none; }
 
 body {
   margin: 0;
@@ -39,6 +39,8 @@ body {
   font-family: var(--body);
   font-size: 1.0625rem;
   line-height: 1.6;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -380,7 +382,7 @@ section { position: relative; }
 .pick-label { font-weight: 700; margin: 0 0 0.7rem; }
 .pick-label .hint { font-weight: 400; }
 .pick .error { margin: 0.5rem 0 0; }
-.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.hp { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; opacity: 0; pointer-events: none; }
 .planner-status { margin: 0; color: var(--text-soft); }
 
 .tile {
@@ -474,3 +476,9 @@ section { position: relative; }
 @media (prefers-reduced-motion: reduce) {
   .tile:active:not(:disabled) { transform: none; }
 }
+
+/* Option guide (cochée et verrouillée pour le moment) */
+.guide-tile { width: 100%; min-height: 64px; padding-right: 2.6rem; cursor: default; }
+.guide-tile:active:not(:disabled) { transform: none; }
+.guide-tile .tile-main { font-size: 1.4rem; }
+.guide-note { margin: 0.55rem 0 0; font-size: 0.9rem; color: var(--text-soft); }

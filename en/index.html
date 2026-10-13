@@ -197,22 +197,22 @@
         </div>
         <div class="info-grid">
           <div class="info reveal">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><text x="12" y="15.4" text-anchor="middle" font-size="8.6" font-weight="700" fill="currentColor" stroke="none" font-family="'Source Sans 3', sans-serif">15+</text></svg>
             <h3>Over 15 only</h3>
             <p>Rides are for people over 15, accompanied by a Pré Mathy Ride guide.</p>
           </div>
           <div class="info reveal reveal-delay-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3"/><path d="M12 22V8M5 12H2a10 10 0 0 0 20 0h-3"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <h3>With a guide</h3>
-            <p>For now, every ride must be done with a Pré Mathy Ride guide.</p>
+            <p>For now, every ride must be done with a Pré Mathy Ride guide, at an extra €15.</p>
           </div>
           <div class="info reveal reveal-delay-2">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2M15 12h2M7 16h10"/></svg>
             <h3>Later, without a guide</h3>
             <p>When rides without a guide open, they will be reserved for holders of the required motorcycle licence who are at least 18. The same will apply to riding alongside someone on horseback.</p>
           </div>
           <div class="info reveal">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/></svg>
             <h3>Stay on site</h3>
             <p>The estate also offers accommodation. You will find all the details at <a href="https://www.premathy.be/" target="_blank" rel="noopener">premathy.be</a>.</p>
           </div>
@@ -256,6 +256,16 @@
                 <button type="button" class="tile ride-tile" data-value="adrenaline" aria-pressed="false"><span class="tick" aria-hidden="true"></span><span class="tile-main">Adrenaline</span><span class="tile-sub">1 h, €45</span></button>
               </div>
               <p class="error" id="ride-error"></p>
+            </div>
+
+            <div class="pick">
+              <input type="hidden" id="guide" name="guide" value="1">
+              <button type="button" class="tile guide-tile" id="guide-tile" aria-pressed="true" aria-disabled="true" aria-describedby="guide-note">
+                <span class="tick" aria-hidden="true"></span>
+                <span class="tile-main">With a guide</span>
+                <span class="tile-sub">Extra €15</span>
+              </button>
+              <p class="guide-note" id="guide-note">Ticked by default: for now, every ride is done with a guide.</p>
             </div>
 
             <div class="pick">
