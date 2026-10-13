@@ -1,6 +1,6 @@
 (() => {
   /* Adresse de l'application web Google Apps Script (planning). Vide = envoi par e-mail classique. */
-  const API = "";
+  const API = "https://script.google.com/macros/s/AKfycbzFcOvjY7Ix0_3_RcaQAu52fmuriFkBNbEN9wfah6EX5Gis8G5u2xgBlSCUBuVemy9Q/exec";
   const FALLBACK_EMAIL = "location@mathyridee.net";
   const PHONE_DISPLAY = "+32 467 77 60 74";
 
